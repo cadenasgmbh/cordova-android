@@ -1,5 +1,8 @@
 language: android
-install: npm install
+sudo: false
+install:
+    - npm install
+    - echo y | android update sdk -u --filter android-22
 script:
     - npm test
     - npm run test-build

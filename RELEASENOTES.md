@@ -20,6 +20,92 @@
 -->
 ## Release Notes for Cordova (Android) ##
 
+### Release 4.0.2 (May 2015) ###
+
+* Removed Intent Functionality from Preferences - Preferences can no longer be set by intents
+
+### Release 4.0.1 (April 2015) ### 
+
+* Bug fixed where platform failed to install on a version downgrade
+
+### Release 4.0.0 (March 2015) ###
+
+This release adds significant functionality, and also introduces a number
+of breaking changes.  Some of the changes to the code base will be of
+particular interest to plugin developers.
+
+#### Major Changes ####
+* Support for pluggable WebViews
+  * The system WebView can be replaced in your app, via a plugin
+  * Core WebView functionality is encapsulated, with extension points exposed
+    via interfaces
+* Support for Crosswalk to bring the modern Chromium WebView to older devices
+  * Uses the pluggable WebView framework
+  * You will need to add the new [cordova-crosswalk-engine](https://github.com/MobileChromeApps/cordova-crosswalk-engine) plugin
+* Splash screen functionality is now provided via plugin
+  * You will need to add the new [cordova-plugin-splashscreen](https://github.com/apache/cordova-plugin-splashscreen) plugin to continue using a splash screen
+* Whitelist functionality is now provided via plugin (CB-7747)
+  * The whitelist has been enhanced to be more secure and configurable
+  * Setting of Content-Security-Policy is now supported by the framework (see details in plugin readme)
+  * You will need to add the new [cordova-plugin-whitelist](https://github.com/apache/cordova-plugin-whitelist) plugin
+  * Legacy whitelist behaviour is still available via plugin (although not recommended).
+
+Changes For Plugin Developers:
+
+* Develop in Android Studio
+  * Android Studio is now fully supported, and recommended over Eclipse
+* Build using Gradle
+  * All builds [use Gradle by default](Android%20Shell%20Tool%20Guide_building_with_gradle), instead of Ant
+  * Plugins can add their own gradle build steps!
+  * Plugins can depend on Maven libraries using `<framework>` tags
+* New APIs: `onStart`, `onStop`, `onConfigurationChanged`
+* `"onScrollChanged"` message removed. Use `view.getViewTreeObserver().addOnScrollChangedListener(...)` instead
+* CB-8702 New API for plugins to override `shouldInterceptRequest` with a stream
+
+#### Other Changes ####
+* CB-8378 Removed `hidekeyboard` and `showkeyboard` events (apps should use a plugin instead)
+* CB-8735 `bin/create` regex relaxed / better support for numbers
+* CB-8699 Fix CordovaResourceApi `copyResource` creating zero-length files when src=uncompressed asset
+* CB-8693 CordovaLib should not contain icons / splashscreens
+* CB-8592 Fix NPE if lifecycle events reach CordovaWebView before `init()` has been called
+* CB-8588 Add CATEGORY_BROWSABLE to intents from showWebPage openExternal=true
+* CB-8587 Don't allow WebView navigations within showWebPage that are not whitelisted
+* CB-7827 Add `--activity-name` for `bin/create`
+* CB-8548 Use debug-signing.properties and release-signing.properties when they exist
+* CB-8545 Don't add a layout as a parent of the WebView
+* CB-7159 BackgroundColor not used when `<html style="opacity:0">`, nor during screen rotation
+* CB-6630 Removed OkHttp from core library. It's now available as a plugin: [cordova-plugin-okhttp](https://www.npmjs.com/package/cordova-plugin-okhttp)
+
+### Release 3.7.1 (January 2015) ###
+* CB-8411 Initialize plugins only after `createViews()` is called (regression in 3.7.0)
+
+### Release 3.7.0 (January 2015) ###
+
+* CB-8328 Allow plugins to handle certificate challenges (close #150)
+* CB-8201 Add support for auth dialogs into Cordova Android
+* CB-8017 Add support for `<input type=file>` for Lollipop
+* CB-8143 Loads of gradle improvements (try it with cordova/build --gradle)
+* CB-8329 Cancel outstanding ActivityResult requests when a new startActivityForResult occurs
+* CB-8026 Bumping up Android Version and setting it up to allow third-party cookies.  This might change later.
+* CB-8210 Use PluginResult for various events from native so that content-security-policy <meta> can be used
+* CB-8168 Add support for `cordova/run --list` (closes #139)
+* CB-8176 Vastly better auto-detection of SDK & JDK locations
+* CB-8079 Use activity class package name, but fallback to application package name when looking for splash screen drawable
+* CB-8147 Have corodva/build warn about unrecognized flags rather than fail
+* CB-7881 Android tooling shouldn't lock application directory
+* CB-8112 Turn off mediaPlaybackRequiresUserGesture
+* CB-6153 Add a preference for controlling hardware button audio stream (DefaultVolumeStream)
+* CB-8031 Fix race condition that shows as ConcurrentModificationException
+* CB-7974 Cancel timeout timer if view is destroyed
+* CB-7940 Disable exec bridge if bridgeSecret is wrong
+* CB-7758 Allow content-url-hosted pages to access the bridge
+* CB-6511 Fixes build for android when app name contains unicode characters.
+* CB-7707 Added multipart PluginResult
+* CB-6837 Fix leaked window when hitting back button while alert being rendered
+* CB-7674 Move preference activation back into onCreate()
+* CB-7499 Support RTL text direction
+* CB-7330 Don't run check_reqs for bin/create.
+
 ### 3.6.4 (Sept 30, 2014) ###
 
 * Set VERSION to 3.6.4 (via coho)

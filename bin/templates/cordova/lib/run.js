@@ -19,15 +19,18 @@
        under the License.
 */
 
+/* jshint loopfunc:true */
+
 var path  = require('path'),
     build = require('./build'),
     emulator = require('./emulator'),
     device   = require('./device'),
+    shell = require('shelljs'),
     Q = require('q');
 
 /*
  * Runs the application on a device if available.
- * If not device is found, it will use a started emulator.
+ * If no device is found, it will use a started emulator.
  * If no started emulators are found it will attempt to start an avd.
  * If no avds are found it will error out.
  * Returns a promise.
@@ -35,24 +38,49 @@ var path  = require('path'),
  module.exports.run = function(args) {
     var buildFlags = [];
     var install_target;
+    var list = false;
 
     for (var i=2; i<args.length; i++) {
-        if (args[i] == '--debug') {
-            buildFlags.push('--debug');
-        } else if (args[i] == '--release') {
-            buildFlags.push('--release');
-        } else if (args[i] == '--nobuild') {
-            buildFlags.push('--nobuild');
+        if (build.isBuildFlag(args[i])) {
+            buildFlags.push(args[i]);
         } else if (args[i] == '--device') {
             install_target = '--device';
         } else if (args[i] == '--emulator') {
             install_target = '--emulator';
-        } else if (args[i].substring(0, 9) == '--target=') {
+        } else if (/^--target=/.exec(args[i])) {
             install_target = args[i].substring(9, args[i].length);
+        } else if (args[i] == '--list') {
+            list = true;
         } else {
-            console.error('ERROR : Run option \'' + args[i] + '\' not recognized.');
-            process.exit(2);
+            console.warn('Option \'' + args[i] + '\' not recognized (ignoring).');
         }
+    }
+
+    if (list) {
+        var output = '';
+        var temp = '';
+        if (!install_target) {
+            output += 'Available Android Devices:\n';
+            temp = shell.exec(path.join(__dirname, 'list-devices'), {silent:true}).output;
+            temp = temp.replace(/^(?=[^\s])/gm, '\t');
+            output += temp;
+            output += 'Available Android Virtual Devices:\n';
+            temp = shell.exec(path.join(__dirname, 'list-emulator-images'), {silent:true}).output;
+            temp = temp.replace(/^(?=[^\s])/gm, '\t');
+            output += temp;
+        } else if (install_target == '--emulator') {
+            output += 'Available Android Virtual Devices:\n';
+            temp = shell.exec(path.join(__dirname, 'list-emulator-images'), {silent:true}).output;
+            temp = temp.replace(/^(?=[^\s])/gm, '\t');
+            output += temp;
+        } else if (install_target == '--device') {
+            output += 'Available Android Devices:\n';
+            temp = shell.exec(path.join(__dirname, 'list-devices'), {silent:true}).output;
+            temp = temp.replace(/^(?=[^\s])/gm, '\t');
+            output += temp;
+        }
+        console.log(output);
+        return;
     }
 
     return Q()
@@ -96,7 +124,7 @@ var path  = require('path'),
                 return emulator.list_images()
                 .then(function(avds) {
                     // if target emulator isn't started, then start it.
-                    for (avd in avds) {
+                    for (var avd in avds) {
                         if (avds[avd].name == install_target) {
                             return emulator.start(install_target)
                             .then(function(emulatorId) {
@@ -116,7 +144,7 @@ var path  = require('path'),
             return device.install(resolvedTarget, buildResults);
         });
     });
-}
+};
 
 module.exports.help = function(args) {
     console.log('Usage: ' + path.relative(process.cwd(), args[1]) + ' [options]');
@@ -129,4 +157,4 @@ module.exports.help = function(args) {
     console.log('    --emulator : Will deploy the built project to an emulator if one exists');
     console.log('    --target=<target_id> : Installs to the target with the specified id.');
     process.exit(0);
-}
+};
